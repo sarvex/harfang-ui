@@ -13,7 +13,7 @@ harfang.bin.assetc(path.join(get_assets_path(), 'assets'), 'assets_compiled', '-
 hg.InputInit()
 hg.WindowSystemInit()
 
-width, height = 1280, 720 
+width, height = 1280, 720
 window = hg.RenderInit('Harfang - GUI', width, height, hg.RF_VSync | hg.RF_MSAA4X | hg.RF_MaxAnisotropy)
 
 hg.AddAssetsFolder("assets_compiled")
@@ -45,16 +45,16 @@ my_text31 = "Hello"
 current_rib = 0
 toggle_idx = 0
 
+view_id = 0
+
 while not hg.ReadKeyboard().Key(hg.K_Escape) and hg.IsWindowOpen(window): 
 	
 	_, width, height = hg.RenderResetToWindow(window, width, height, hg.RF_VSync | hg.RF_MSAA4X | hg.RF_MaxAnisotropy)
-	
+
 	dt = hg.TickClock()
 	dt_f = hg.time_to_sec_f(dt)
 	keyboard.Update()
 	mouse.Update()
-	view_id = 0
-	
 	if hgui.begin_frame(dt, mouse, keyboard, window):
 
 		if hgui.begin_window_2D("My window",  hg.Vec2(50, 50), hg.Vec2(1124, 600), 1):
@@ -94,13 +94,13 @@ while not hg.ReadKeyboard().Key(hg.K_Escape) and hg.IsWindowOpen(window):
 			if hgui.button("Hello button 4", align = hgui.HGUIAF_TOP)[0]:
 				print("Click btn 4")
 			hgui.same_line()
-			
+
 			hgui.set_inner_line_space_size(10)
 			hgui.set_line_space_size(20)
 
 			if hgui.button("Hello button 23", align = hgui.HGUIAF_TOPLEFT)[0]:
 				print("Click btn 23")
-			
+
 			_, current_rib = hgui.radio_image_button("rib_0","textures/cube_1.png", current_rib, 0, hg.Vec2(64, 64))
 			hgui.same_line()
 			_, current_rib = hgui.radio_image_button("rib_1","textures/cube_2.png", current_rib, 1)
@@ -108,17 +108,17 @@ while not hg.ReadKeyboard().Key(hg.K_Escape) and hg.IsWindowOpen(window):
 			_, current_rib = hgui.radio_image_button("rib_2","textures/cube_3.png", current_rib, 2)
 			hgui.same_line()
 			_, current_rib = hgui.radio_image_button("rib_3","textures/cube_4.png", current_rib, 3)
-			
+
 			f, toggle_idx = hgui.toggle_image_button("arrows", ["textures/Button_Arrow_L.png", "textures/Button_Arrow_R.png"], toggle_idx, hg.Vec2(50, 50))
 			if f:
-				print(str(toggle_idx))
+				print(toggle_idx)
 
 
 			hgui.set_cursor_pos(hg.Vec3(400,200,0))
-			
+
 			if hgui.button_image("image_1", "textures/logo.png", hg.Vec2(221, 190) / 6, show_label = True)[0]:
 				print("click image button")
-			
+
 			if hgui.begin_window_2D("my_window_2", hg.Vec2(650, 100), hg.Vec2(400, 400), 1, hgui.HGUIWF_NoPointerMove ):
 				if hgui.button("Hello button 5")[0]:
 					print("Click btn 5")
@@ -137,12 +137,12 @@ while not hg.ReadKeyboard().Key(hg.K_Escape) and hg.IsWindowOpen(window):
 					hgui.end_window()
 
 				hgui.end_window()
-			
+
 			if hgui.begin_window_2D("my_window_3", hg.Vec2(670, 120), hg.Vec2(400, 400), 1 ):
 				if hgui.button("Hello button 3.1")[0]:
 					print("Click btn 3.1")
-				
-				
+
+
 				if hgui.begin_window_2D("my_window_3.1", hg.Vec2(-50, 100), hg.Vec2(200, 100), 1, hgui.HGUIWF_HideTitle ):
 					f, d = hgui.check_box("Check box 3.1", flag_check_box31)
 					if f:
@@ -151,7 +151,7 @@ while not hg.ReadKeyboard().Key(hg.K_Escape) and hg.IsWindowOpen(window):
 					if hgui.button("My button 3.2")[0]:
 						print("click btn 3.2")
 					hgui.end_window()
-				
+
 
 				if hgui.begin_window_2D("my_window_3.2", hg.Vec2(70, 130), hg.Vec2(200, 100), 1):
 					if hgui.button("My button 3.3")[0]:
@@ -161,7 +161,7 @@ while not hg.ReadKeyboard().Key(hg.K_Escape) and hg.IsWindowOpen(window):
 				hgui.end_window()
 
 			hgui.end_window()
-	
+
 		hgui.end_frame(view_id)
 
 	hg.Frame()

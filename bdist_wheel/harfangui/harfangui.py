@@ -59,37 +59,44 @@ class HarfangGUIRenderer:
 
 	@classmethod
 	def init(cls, fonts_files, fonts_sizes):
-		cls.vtx_layout = hg.VertexLayout() # $$ function unique
-		cls.vtx_layout.Begin()
-		cls.vtx_layout.Add(hg.A_Position, 3, hg.AT_Float)
-		cls.vtx_layout.Add(hg.A_Color0, 4, hg.AT_Float)
-		cls.vtx_layout.Add(hg.A_TexCoord0, 3, hg.AT_Float)
-		cls.vtx_layout.End()
+	    cls.vtx_layout = hg.VertexLayout() # $$ function unique
+	    cls.vtx_layout.Begin()
+	    cls.vtx_layout.Add(hg.A_Position, 3, hg.AT_Float)
+	    cls.vtx_layout.Add(hg.A_Color0, 4, hg.AT_Float)
+	    cls.vtx_layout.Add(hg.A_TexCoord0, 3, hg.AT_Float)
+	    cls.vtx_layout.End()
 
-		cls.vtx = hg.Vertices(cls.vtx_layout, 256)
+	    cls.vtx = hg.Vertices(cls.vtx_layout, 256)
 
-		cls.shader_flat = hg.LoadProgramFromAssets('hgui_shaders/hgui_pos_rgb')
-		cls.shader_texture = hg.LoadProgramFromAssets('hgui_shaders/hgui_texture')
-		cls.shader_texture_opacity = hg.LoadProgramFromAssets('hgui_shaders/hgui_texture_opacity')
+	    cls.shader_flat = hg.LoadProgramFromAssets('hgui_shaders/hgui_pos_rgb')
+	    cls.shader_texture = hg.LoadProgramFromAssets('hgui_shaders/hgui_texture')
+	    cls.shader_texture_opacity = hg.LoadProgramFromAssets('hgui_shaders/hgui_texture_opacity')
 
-		cls.uniforms_values_list = hg.UniformSetValueList()
-		cls.uniforms_textures_list = hg.UniformSetTextureList()
+	    cls.uniforms_values_list = hg.UniformSetValueList()
+	    cls.uniforms_textures_list = hg.UniformSetTextureList()
 
-		cls.box_render_state = hg.ComputeRenderState(hg.BM_Alpha, hg.DT_LessEqual, hg.FC_Disabled, False)
-		cls.box_overlay_render_state = hg.ComputeRenderState(hg.BM_Alpha, hg.DT_Disabled, hg.FC_Disabled, False)
-		cls.box_render_state_opaque = hg.ComputeRenderState(hg.BM_Opaque, hg.DT_LessEqual, hg.FC_Disabled, True)
+	    cls.box_render_state = hg.ComputeRenderState(hg.BM_Alpha, hg.DT_LessEqual, hg.FC_Disabled, False)
+	    cls.box_overlay_render_state = hg.ComputeRenderState(hg.BM_Alpha, hg.DT_Disabled, hg.FC_Disabled, False)
+	    cls.box_render_state_opaque = hg.ComputeRenderState(hg.BM_Opaque, hg.DT_LessEqual, hg.FC_Disabled, True)
 
-		cls.fonts_sizes = fonts_sizes
-		for i in range(len(fonts_files)):
-			cls.fonts.append(hg.LoadFontFromAssets('font/' + fonts_files[i], fonts_sizes[i], 1024, 1, 
-			"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"))
-		cls.font_prg = hg.LoadProgramFromAssets('hgui_shaders/hgui_font')
-		cls.current_font_id = 0
+	    cls.fonts_sizes = fonts_sizes
+	    for i in range(len(fonts_files)):
+	        cls.fonts.append(
+	            hg.LoadFontFromAssets(
+	                f'font/{fonts_files[i]}',
+	                fonts_sizes[i],
+	                1024,
+	                1,
+	                "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ",
+	            )
+	        )
+	    cls.font_prg = hg.LoadProgramFromAssets('hgui_shaders/hgui_font')
+	    cls.current_font_id = 0
 
-		# text uniforms and render state
-		cls.text_uniform_values = [hg.MakeUniformSetValue('u_color', hg.Vec4(1, 1, 0))]
-		w_z, w_r, w_g, w_b, w_a = False, True, True, True, True
-		cls.text_render_state = hg.ComputeRenderState(hg.BM_Alpha, hg.DT_Disabled, hg.FC_Disabled, w_z, w_r, w_g, w_b, w_a)
+	    # text uniforms and render state
+	    cls.text_uniform_values = [hg.MakeUniformSetValue('u_color', hg.Vec4(1, 1, 0))]
+	    w_z, w_r, w_g, w_b, w_a = False, True, True, True, True
+	    cls.text_render_state = hg.ComputeRenderState(hg.BM_Alpha, hg.DT_Disabled, hg.FC_Disabled, w_z, w_r, w_g, w_b, w_a)
 
 	@classmethod
 	def get_texture(cls, texture_path):
@@ -140,24 +147,21 @@ class HarfangGUIRenderer:
 	
 	@classmethod
 	def draw_box(cls, vid:int, vertices:list, color:hg.Color, texture_path = None, flag_opaque = False):
-		cls.vtx.Clear()
-		cls.uniforms_values_list.clear()
-		cls.uniforms_textures_list.clear()
-		idx = [0, 1, 2, 0, 2, 3]
-		cls.vtx.Begin(0).SetPos(vertices[0]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(0, 0)).End()
-		cls.vtx.Begin(1).SetPos(vertices[1]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(0, 1)).End()
-		cls.vtx.Begin(2).SetPos(vertices[2]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(1, 1)).End()
-		cls.vtx.Begin(3).SetPos(vertices[3]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(1, 0)).End()
-		if texture_path is not None:
-			cls.uniforms_textures_list.push_back(hg.MakeUniformSetTexture("u_tex", cls.get_texture(texture_path), 0))
-			shader = cls.shader_texture
-		else:
-			shader = cls.shader_flat
-		if flag_opaque:
-			rs = cls.box_render_state_opaque
-		else:
-			rs = cls.box_render_state
-		hg.DrawTriangles(vid, idx, cls.vtx, shader, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
+	    cls.vtx.Clear()
+	    cls.uniforms_values_list.clear()
+	    cls.uniforms_textures_list.clear()
+	    idx = [0, 1, 2, 0, 2, 3]
+	    cls.vtx.Begin(0).SetPos(vertices[0]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(0, 0)).End()
+	    cls.vtx.Begin(1).SetPos(vertices[1]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(0, 1)).End()
+	    cls.vtx.Begin(2).SetPos(vertices[2]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(1, 1)).End()
+	    cls.vtx.Begin(3).SetPos(vertices[3]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(1, 0)).End()
+	    if texture_path is not None:
+	    	cls.uniforms_textures_list.push_back(hg.MakeUniformSetTexture("u_tex", cls.get_texture(texture_path), 0))
+	    	shader = cls.shader_texture
+	    else:
+	    	shader = cls.shader_flat
+	    rs = cls.box_render_state_opaque if flag_opaque else cls.box_render_state
+	    hg.DrawTriangles(vid, idx, cls.vtx, shader, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
 	
 	@classmethod
 	def draw_rendered_texture_box(cls, vid: int, vertices, color: hg.Color, texture: hg.Texture):
@@ -174,22 +178,19 @@ class HarfangGUIRenderer:
 	
 	@classmethod
 	def draw_box_border(cls, vid: int, vertices, color: hg.Color, flag_opaque = False):
-		cls.vtx.Clear()
-		cls.uniforms_values_list.clear()
-		cls.uniforms_textures_list.clear()
-		idx = [0, 1, 5, 0, 5, 4, 
-				1, 2, 6, 1, 6, 5,
-				2, 3, 7, 2, 7, 6,
-				3, 0, 4, 3, 4, 7]
-		
-		for i in range(8):
-			cls.vtx.Begin(i).SetPos(vertices[i]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(0, 0)).End()
-		
-		if flag_opaque:
-			rs = cls.box_render_state_opaque
-		else:
-			rs = cls.box_render_state
-		hg.DrawTriangles(vid, idx, cls.vtx, cls.shader_flat, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
+	    cls.vtx.Clear()
+	    cls.uniforms_values_list.clear()
+	    cls.uniforms_textures_list.clear()
+	    idx = [0, 1, 5, 0, 5, 4, 
+	    		1, 2, 6, 1, 6, 5,
+	    		2, 3, 7, 2, 7, 6,
+	    		3, 0, 4, 3, 4, 7]
+
+	    for i in range(8):
+	    	cls.vtx.Begin(i).SetPos(vertices[i]* cls.frame_buffers_scale).SetColor0(color).SetTexCoord0(hg.Vec2(0, 0)).End()
+
+	    rs = cls.box_render_state_opaque if flag_opaque else cls.box_render_state
+	    hg.DrawTriangles(vid, idx, cls.vtx, cls.shader_flat, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
 
 	@classmethod
 	def draw_circle(cls, vid, matrix:hg.Mat4, pos, r, angle_start, angle, color):
@@ -270,7 +271,7 @@ class HarfangGUIRenderer:
 
 	@classmethod
 	def render(cls, view_id, outputs2D: list, outputs3D: list):
-		"""
+	    """
 		Sets up and renders 2D and 3D views for given outputs. 
 		It first sets up the 3D and 2D views based on the provided outputs. 
 		Then, it renders the widget containers to textures and displays them to frame buffers or the screen. 
@@ -278,137 +279,137 @@ class HarfangGUIRenderer:
 		Finally, it returns the view_id, render_views_3D, and render_views_2D.
 		"""
 		
-		# Setup 3D views
-		render_views_3D = []
-		for output in outputs3D:
-			resolution = output["resolution"]
-			view_state = output["view_state"]
-			if resolution is not None and view_state is not None:
-				fb = output["frame_buffer"]
-				
-				if fb is None:
-					hg.SetViewFrameBuffer(view_id, hg.InvalidFrameBufferHandle)
-				else:
-					hg.SetViewFrameBuffer(view_id, fb.GetHandle())
-				
-				hg.SetViewMode(view_id, hg.VM_Sequential)
-				hg.SetViewRect(view_id, 0, 0, int(resolution.x), int(resolution.y))
-				hg.SetViewTransform(view_id, view_state.view, view_state.proj)
-				hg.SetViewClear(view_id, 0, hg.Color.Black, 1, 0)
-				
-				render_views_3D.append(view_id)
-				view_id += 1
+	    # Setup 3D views
+	    render_views_3D = []
+	    for output in outputs3D:
+	    	resolution = output["resolution"]
+	    	view_state = output["view_state"]
+	    	if resolution is not None and view_state is not None:
+	    		fb = output["frame_buffer"]
 
-		# Setup 2D views
-		render_views_2D = []
-		for output in outputs2D:
-			resolution = output["resolution"]
-			view_state = output["view_state"]
-			if resolution is not None:
-				fb = output["frame_buffer"]
-				if fb is None:
-					hg.SetViewFrameBuffer(view_id, hg.InvalidFrameBufferHandle)
-				else:
-					hg.SetViewFrameBuffer(view_id, fb.GetHandle())
-				if view_state is None:
-					hg.SetViewOrthographic(view_id, 0, 0, int(resolution.x), int(resolution.y), hg.TransformationMat4(hg.Vec3(resolution.x / 2, -resolution.y / 2, 0), hg.Vec3(0, 0, 0), hg.Vec3(1, 1, 1)), 0.1, 1000, resolution.y)
-				else:
-					hg.SetViewTransform(view_id, view_state.view, view_state.proj)
-				hg.SetViewMode(view_id, hg.VM_Sequential)
-				hg.SetViewRect(view_id, 0, 0, int(resolution.x), int(resolution.y))
-				if view_id == 0:
-					hg.SetViewClear(view_id, hg.CF_Color | hg.CF_Depth, hg.Color.Black, 1, 0)
-				else:
-					hg.SetViewClear(view_id, hg.CF_Depth, hg.Color.Black, 1, 0)
-				
-				render_views_2D.append(view_id)
-				view_id += 1
+	    		if fb is None:
+	    			hg.SetViewFrameBuffer(view_id, hg.InvalidFrameBufferHandle)
+	    		else:
+	    			hg.SetViewFrameBuffer(view_id, fb.GetHandle())
 
-		# Render widgets containers to textures then display to fbs or screen
-		
-		cls.uniforms_values_list.clear()
-		shader = cls.shader_texture_opacity
-		idx = [0, 1, 2, 0, 2, 3]
+	    		hg.SetViewMode(view_id, hg.VM_Sequential)
+	    		hg.SetViewRect(view_id, 0, 0, int(resolution.x), int(resolution.y))
+	    		hg.SetViewTransform(view_id, view_state.view, view_state.proj)
+	    		hg.SetViewClear(view_id, 0, hg.Color.Black, 1, 0)
 
-		# Render 3D containers
-		for container in HarfangGUISceneGraph.widgets_containers3D_children_order:
-			
-			view_id = cls.render_widget_container(view_id, container)
-		
-		for container in reversed(HarfangGUISceneGraph.widgets_containers3D_children_order):
-			# Display 3D widgets containers
-			if not container["flag_2D"]:
-				# Render widgets container to texture:
-				c = hg.Color(1, 1, 1, container["opacity"])
-				matrix =container["world_matrix"]
-				pos = hg.Vec3(0, 0, 0)
-				size = container["size"]
-				p0 = matrix * pos
-				p1 = matrix * hg.Vec3(pos.x, pos.y + size.y, pos.z)
-				p2 = matrix * hg.Vec3(pos.x + size.x, pos.y + size.y, pos.z)
-				p3 = matrix * hg.Vec3(pos.x + size.x, pos.y, pos.z)
-				tex = container["color_texture"]
+	    		render_views_3D.append(view_id)
+	    		view_id += 1
 
-				# Display widgets container
-				cls.vtx.Clear()
-				cls.uniforms_textures_list.clear()
-				
-				cls.vtx.Begin(0).SetPos(p0).SetColor0(c).SetTexCoord0(hg.Vec2(0, 0)).End()
-				cls.vtx.Begin(1).SetPos(p1).SetColor0(c).SetTexCoord0(hg.Vec2(0, 1)).End()
-				cls.vtx.Begin(2).SetPos(p2).SetColor0(c).SetTexCoord0(hg.Vec2(1, 1)).End()
-				cls.vtx.Begin(3).SetPos(p3).SetColor0(c).SetTexCoord0(hg.Vec2(1, 0)).End()
+	    # Setup 2D views
+	    render_views_2D = []
+	    for output in outputs2D:
+	    	resolution = output["resolution"]
+	    	view_state = output["view_state"]
+	    	if resolution is not None:
+	    		fb = output["frame_buffer"]
+	    		if fb is None:
+	    			hg.SetViewFrameBuffer(view_id, hg.InvalidFrameBufferHandle)
+	    		else:
+	    			hg.SetViewFrameBuffer(view_id, fb.GetHandle())
+	    		if view_state is None:
+	    			hg.SetViewOrthographic(view_id, 0, 0, int(resolution.x), int(resolution.y), hg.TransformationMat4(hg.Vec3(resolution.x / 2, -resolution.y / 2, 0), hg.Vec3(0, 0, 0), hg.Vec3(1, 1, 1)), 0.1, 1000, resolution.y)
+	    		else:
+	    			hg.SetViewTransform(view_id, view_state.view, view_state.proj)
+	    		hg.SetViewMode(view_id, hg.VM_Sequential)
+	    		hg.SetViewRect(view_id, 0, 0, int(resolution.x), int(resolution.y))
+	    		if view_id == 0:
+	    			hg.SetViewClear(view_id, hg.CF_Color | hg.CF_Depth, hg.Color.Black, 1, 0)
+	    		else:
+	    			hg.SetViewClear(view_id, hg.CF_Depth, hg.Color.Black, 1, 0)
 
+	    		render_views_2D.append(view_id)
+	    		view_id += 1
 
-				cls.uniforms_textures_list.push_back(hg.MakeUniformSetTexture("u_tex", tex, 0))
-				
-				if container["flag_overlay"]:
-					rs = cls.box_overlay_render_state
-				else:
-					rs = cls.box_render_state
-				
-				for vid in render_views_3D:
-					hg.DrawTriangles(vid, idx, cls.vtx, shader, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
-		
-		# Render 2D containers
-		if len(render_views_2D) > 0:
-			for container in HarfangGUISceneGraph.widgets_containers2D_children_order:
-				
-				view_id = cls.render_widget_container(view_id, container)
-				
-				# Display 3D widgets containers
-				if container["parent"]["name"] == "MainContainer2D":
-					# Render widgets container to texture:
-					c = hg.Color(1, 1, 1, container["opacity"])
-					matrix = container["world_matrix"]
-					pos = hg.Vec3(0, 0, 0)
-					size = container["size"]
-					p0 = matrix * pos
-					p1 = matrix * hg.Vec3(pos.x, pos.y + size.y, pos.z)
-					p2 = matrix * hg.Vec3(pos.x + size.x, pos.y + size.y, pos.z)
-					p3 = matrix * hg.Vec3(pos.x + size.x, pos.y, pos.z)
-					tex = container["color_texture"]
+	    # Render widgets containers to textures then display to fbs or screen
 
-					# Display widgets container
-					cls.vtx.Clear()
-					cls.uniforms_textures_list.clear()
-					
-					cls.vtx.Begin(0).SetPos(p0).SetColor0(c).SetTexCoord0(hg.Vec2(0, 0)).End()
-					cls.vtx.Begin(1).SetPos(p1).SetColor0(c).SetTexCoord0(hg.Vec2(0, 1)).End()
-					cls.vtx.Begin(2).SetPos(p2).SetColor0(c).SetTexCoord0(hg.Vec2(1, 1)).End()
-					cls.vtx.Begin(3).SetPos(p3).SetColor0(c).SetTexCoord0(hg.Vec2(1, 0)).End()
+	    cls.uniforms_values_list.clear()
+	    shader = cls.shader_texture_opacity
+	    idx = [0, 1, 2, 0, 2, 3]
+
+	    # Render 3D containers
+	    for container in HarfangGUISceneGraph.widgets_containers3D_children_order:
+
+	    	view_id = cls.render_widget_container(view_id, container)
+
+	    for container in reversed(HarfangGUISceneGraph.widgets_containers3D_children_order):
+	    	# Display 3D widgets containers
+	    	if not container["flag_2D"]:
+	    		# Render widgets container to texture:
+	    		c = hg.Color(1, 1, 1, container["opacity"])
+	    		matrix =container["world_matrix"]
+	    		pos = hg.Vec3(0, 0, 0)
+	    		size = container["size"]
+	    		p0 = matrix * pos
+	    		p1 = matrix * hg.Vec3(pos.x, pos.y + size.y, pos.z)
+	    		p2 = matrix * hg.Vec3(pos.x + size.x, pos.y + size.y, pos.z)
+	    		p3 = matrix * hg.Vec3(pos.x + size.x, pos.y, pos.z)
+	    		tex = container["color_texture"]
+
+	    		# Display widgets container
+	    		cls.vtx.Clear()
+	    		cls.uniforms_textures_list.clear()
+
+	    		cls.vtx.Begin(0).SetPos(p0).SetColor0(c).SetTexCoord0(hg.Vec2(0, 0)).End()
+	    		cls.vtx.Begin(1).SetPos(p1).SetColor0(c).SetTexCoord0(hg.Vec2(0, 1)).End()
+	    		cls.vtx.Begin(2).SetPos(p2).SetColor0(c).SetTexCoord0(hg.Vec2(1, 1)).End()
+	    		cls.vtx.Begin(3).SetPos(p3).SetColor0(c).SetTexCoord0(hg.Vec2(1, 0)).End()
 
 
-					cls.uniforms_textures_list.push_back(hg.MakeUniformSetTexture("u_tex", tex, 0))
-					
-					if container["flag_overlay"]:
-						rs = cls.box_overlay_render_state
-					else:
-						rs = cls.box_render_state
-					
-					for vid in render_views_2D:
-						hg.DrawTriangles(vid, idx, cls.vtx, shader, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
-		
-		return view_id, render_views_3D, render_views_2D
+	    		cls.uniforms_textures_list.push_back(hg.MakeUniformSetTexture("u_tex", tex, 0))
+
+	    		if container["flag_overlay"]:
+	    			rs = cls.box_overlay_render_state
+	    		else:
+	    			rs = cls.box_render_state
+
+	    		for vid in render_views_3D:
+	    			hg.DrawTriangles(vid, idx, cls.vtx, shader, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
+
+	    	# Render 2D containers
+	    if render_views_2D:
+	        for container in HarfangGUISceneGraph.widgets_containers2D_children_order:
+
+	        	view_id = cls.render_widget_container(view_id, container)
+
+	        	# Display 3D widgets containers
+	        	if container["parent"]["name"] == "MainContainer2D":
+	        		# Render widgets container to texture:
+	        		c = hg.Color(1, 1, 1, container["opacity"])
+	        		matrix = container["world_matrix"]
+	        		pos = hg.Vec3(0, 0, 0)
+	        		size = container["size"]
+	        		p0 = matrix * pos
+	        		p1 = matrix * hg.Vec3(pos.x, pos.y + size.y, pos.z)
+	        		p2 = matrix * hg.Vec3(pos.x + size.x, pos.y + size.y, pos.z)
+	        		p3 = matrix * hg.Vec3(pos.x + size.x, pos.y, pos.z)
+	        		tex = container["color_texture"]
+
+	        		# Display widgets container
+	        		cls.vtx.Clear()
+	        		cls.uniforms_textures_list.clear()
+
+	        		cls.vtx.Begin(0).SetPos(p0).SetColor0(c).SetTexCoord0(hg.Vec2(0, 0)).End()
+	        		cls.vtx.Begin(1).SetPos(p1).SetColor0(c).SetTexCoord0(hg.Vec2(0, 1)).End()
+	        		cls.vtx.Begin(2).SetPos(p2).SetColor0(c).SetTexCoord0(hg.Vec2(1, 1)).End()
+	        		cls.vtx.Begin(3).SetPos(p3).SetColor0(c).SetTexCoord0(hg.Vec2(1, 0)).End()
+
+
+	        		cls.uniforms_textures_list.push_back(hg.MakeUniformSetTexture("u_tex", tex, 0))
+
+	        		if container["flag_overlay"]:
+	        			rs = cls.box_overlay_render_state
+	        		else:
+	        			rs = cls.box_render_state
+
+	        		for vid in render_views_2D:
+	        			hg.DrawTriangles(vid, idx, cls.vtx, shader, cls.uniforms_values_list, cls.uniforms_textures_list, rs)
+
+	    return view_id, render_views_3D, render_views_2D
 
 class HarfangUISkin:
 	"""
@@ -828,46 +829,44 @@ class HarfangUISkin:
 
 	@classmethod
 	def interpolate_values(cls, v_start, v_end, t):
-		t = max(0, min(1, t))
-		v = v_start * (1-t) + v_end * t
-		return v
+	    t = max(0, min(1, t))
+	    return v_start * (1-t) + v_end * t
 	
 	@classmethod
 	def load_properties(cls, file_name):
-		file = open(file_name, "r")
-		json_script = file.read()
-		file.close()
-		if json_script != "":
-			return json.loads(json_script)
-		else:
-			print("HGUISkin - ERROR - Can't open properties json file !")
-		return None
+	    with open(file_name, "r") as file:
+	        json_script = file.read()
+	    if json_script != "":
+	    	return json.loads(json_script)
+	    else:
+	    	print("HGUISkin - ERROR - Can't open properties json file !")
+	    return None
 
 	@classmethod
 	def convert_properties_color_to_RGBA32(cls):
-		for property_name, property in cls.properties.items():
-			if property["type"] == "color":
-				property["type"] = "RGBA32"
-				for layer in property["layers"]:
-					for state_name, state in layer["states"].items():
-						v = state["value"]
-						vrgba32 = (int(v[0] * 255) << 24) + (int(v[1] * 255) << 16) + (int(v[2] * 255) << 8) + int(v[3] * 255)
-						state["value"] = str(hex(vrgba32))
-		
-		cls.save_properties("properties_rgba32.json")
+	    for property_name, property in cls.properties.items():
+	        if property["type"] == "color":
+	            property["type"] = "RGBA32"
+	            for layer in property["layers"]:
+	                for state_name, state in layer["states"].items():
+	                    v = state["value"]
+	                    vrgba32 = (int(v[0] * 255) << 24) + (int(v[1] * 255) << 16) + (int(v[2] * 255) << 8) + int(v[3] * 255)
+	                    state["value"] = hex(vrgba32)
+
+	    cls.save_properties("properties_rgba32.json")
 	
 	@classmethod
 	def convert_properties_RGBA32_to_RGB24_APercent(cls):
-		for property_name, property in cls.properties.items():
-			if property["type"] == "RGBA32":
-				property["type"] = "RGB24_APercent"
-				for layer in property["layers"]:
-					for state_name, state in layer["states"].items():
-						v = hg.ColorFromRGBA32(hg.ARGB32ToRGBA32(int(state["value"].replace("#", "0x"),16)))
-						vrgb24 = (int(v.r * 255) << 16) + (int(v.g * 255) << 8) + int(v.b * 255)
-						state["value"] = [str(hex(vrgb24)).replace("0x", "#"), int(v.a * 100)]
-		
-		cls.save_properties("properties_rgb24_apercent.json")
+	    for property_name, property in cls.properties.items():
+	        if property["type"] == "RGBA32":
+	            property["type"] = "RGB24_APercent"
+	            for layer in property["layers"]:
+	                for state_name, state in layer["states"].items():
+	                    v = hg.ColorFromRGBA32(hg.ARGB32ToRGBA32(int(state["value"].replace("#", "0x"),16)))
+	                    vrgb24 = (int(v.r * 255) << 16) + (int(v.g * 255) << 8) + int(v.b * 255)
+	                    state["value"] = [hex(vrgb24).replace("0x", "#"), int(v.a * 100)]
+
+	    cls.save_properties("properties_rgb24_apercent.json")
 
 	@staticmethod
 	def RGBA32_to_Color(value:str):
@@ -881,10 +880,9 @@ class HarfangUISkin:
 	@classmethod
 	def save_properties(cls, output_file_name):
 
-		json_script = json.dumps(cls.properties, indent=4)
-		file = open(output_file_name, "w")
-		file.write(json_script)
-		file.close()
+	    json_script = json.dumps(cls.properties, indent=4)
+	    with open(output_file_name, "w") as file:
+	        file.write(json_script)
 		
 
 class HarfangGUISceneGraph:
@@ -1252,30 +1250,27 @@ class HarfangUI:
 
 	@classmethod
 	def want_capture_mouse(cls):
-		if cls.mouse is None:
-			return False
-		
-		# Capture new mouse click:
-		if cls.mouse.Down(hg.MB_0):
-			if "MLB_pressed" not in cls.new_signals and "MLB_down" not in cls.new_signals:
-				return True
-		
-		# Mouse click detected but not stil updated in widgets:
-		if cls.ui_state == cls.UI_STATE_WIDGET_MOUSE_FOCUS or "MLB_pressed" in cls.new_signals:
-			return True
-		return False
+	    if cls.mouse is None:
+	    	return False
+
+	    # Capture new mouse click:
+	    if cls.mouse.Down(hg.MB_0):
+	    	if "MLB_pressed" not in cls.new_signals and "MLB_down" not in cls.new_signals:
+	    		return True
+
+	    	# Mouse click detected but not stil updated in widgets:
+	    return (
+	        cls.ui_state == cls.UI_STATE_WIDGET_MOUSE_FOCUS
+	        or "MLB_pressed" in cls.new_signals
+	    )
 
 	@classmethod
 	def want_capture_keyboard(cls):
-		if cls.ui_state == cls.UI_STATE_WIDGET_KEYBOARD_FOCUS:
-			return True
-		return False
+	    return cls.ui_state == cls.UI_STATE_WIDGET_KEYBOARD_FOCUS
 
 	@classmethod
 	def is_a_window_hovered(cls):
-		if len(cls.focussed_containers) > 0:
-			return True
-		return False
+	    return len(cls.focussed_containers) > 0
 
 	@classmethod
 	def new_controller(cls, id):
@@ -1351,39 +1346,36 @@ class HarfangUI:
 
 	@classmethod
 	def new_primitive(cls, primitive_def):
-		new_primitive = cls.new_gui_object(primitive_def["type"])
-		new_primitive .update ({
-			"classe": "primitive",
-			"name": primitive_def["name"]
-		})
-		# Create basic occurence
-		primitive_model = HarfangUISkin.primitives[primitive_def["type"]]
-		for variable_name, vd in primitive_model.items():
-			t = vd["type"]
-			if "value" in vd:
-				v = cls.transcrypt_var(vd["value"], t)
-			else:
-				v = None
-			new_primitive[variable_name] = v
-		# Overwrites/create occurence vars
-		ex_vars = ["type", "name"]
-		for variable_name, v in primitive_def.items():
-			if variable_name not in ex_vars:
-				if variable_name in primitive_model:
-					new_primitive[variable_name] = cls.transcrypt_var(v, primitive_model[variable_name]["type"])
-				else:
-					new_primitive[variable_name] = v
-		# Specific internal vars:
-		if new_primitive["type"] == "texture_toggle_fading":
-			new_primitive["t"] = 0
-			new_primitive["toggle_t0"] = 0
-			new_primitive["toggle_idx_start"] = 0
-		if new_primitive["type"] == "text_toggle_fading":
-			new_primitive["t"] = 0
-			new_primitive["toggle_t0"] = 0
-			new_primitive["toggle_idx_start"] = 0
-			new_primitive["texts_d"] = []
-		return new_primitive
+	    new_primitive = cls.new_gui_object(primitive_def["type"])
+	    new_primitive .update ({
+	    	"classe": "primitive",
+	    	"name": primitive_def["name"]
+	    })
+	    # Create basic occurence
+	    primitive_model = HarfangUISkin.primitives[primitive_def["type"]]
+	    for variable_name, vd in primitive_model.items():
+	        t = vd["type"]
+	        v = cls.transcrypt_var(vd["value"], t) if "value" in vd else None
+	        new_primitive[variable_name] = v
+	    # Overwrites/create occurence vars
+	    ex_vars = ["type", "name"]
+	    for variable_name, v in primitive_def.items():
+	    	if variable_name not in ex_vars:
+	    		if variable_name in primitive_model:
+	    			new_primitive[variable_name] = cls.transcrypt_var(v, primitive_model[variable_name]["type"])
+	    		else:
+	    			new_primitive[variable_name] = v
+	    # Specific internal vars:
+	    if new_primitive["type"] == "texture_toggle_fading":
+	    	new_primitive["t"] = 0
+	    	new_primitive["toggle_t0"] = 0
+	    	new_primitive["toggle_idx_start"] = 0
+	    if new_primitive["type"] == "text_toggle_fading":
+	    	new_primitive["t"] = 0
+	    	new_primitive["toggle_t0"] = 0
+	    	new_primitive["toggle_idx_start"] = 0
+	    	new_primitive["texts_d"] = []
+	    return new_primitive
 
 	@classmethod
 	def get_property_value(cls, widget, property_name):
@@ -1391,24 +1383,27 @@ class HarfangUI:
 	
 	@classmethod
 	def get_property_states_value(cls, widget, property_name, states):
-		if property_name in widget["properties"]:
-			property = widget["properties"][property_name]
-			value = None
-			for layer_id in range(len(property["layers"])):
-				layer = property["layers"][layer_id]
-				for state_name in states:
-					if state_name in layer["states"]:
-						state = layer["states"][state_name]
-						if value is None or layer["operator"] == "set":
-							value = state["value"]
-						elif layer["operator"] == "add":
-							value += state["value"]
-						elif layer["operator"] == "multiply":
-							value *= state["value"]
-						break # One state by layer
-			return value
-		print("!!! ERROR - Unknown property: " + property_name + " - Widget: " + widget["name"])
-		return None
+	    if property_name in widget["properties"]:
+	    	property = widget["properties"][property_name]
+	    	value = None
+	    	for layer_id in range(len(property["layers"])):
+	    		layer = property["layers"][layer_id]
+	    		for state_name in states:
+	    			if state_name in layer["states"]:
+	    				state = layer["states"][state_name]
+	    				if value is None or layer["operator"] == "set":
+	    					value = state["value"]
+	    				elif layer["operator"] == "add":
+	    					value += state["value"]
+	    				elif layer["operator"] == "multiply":
+	    					value *= state["value"]
+	    				break # One state by layer
+	    	return value
+	    print(
+	        f"!!! ERROR - Unknown property: {property_name} - Widget: "
+	        + widget["name"]
+	    )
+	    return None
 
 	@classmethod
 	def new_single_widget(cls, type):
@@ -1496,24 +1491,23 @@ class HarfangUI:
 
 	@classmethod
 	def create_component(cls, component_type, widget):
-		if component_type in HarfangUISkin.components:
-			
-			#Basic component occurence
-			component = cls.new_component(component_type)
-			component["name"] = component_type						### ! Define a real name when components will be defined with a JSON script
-			component_model = HarfangUISkin.components[component_type]
-			
-			#Overwrites and create vars
-			vec3_types = ["size_factor", "margins"] #fields that needs list_to_vec3 conversion
-			ex_vars = ["primitives"]
-			for key, value in component_model.items():
-				if key not in ex_vars:
-					if key in vec3_types:
-						component[key] = hg.Vec3(value[0], value[1], value[2])
-					else:
-						component[key] = value
-			return component
-		return None
+	    if component_type not in HarfangUISkin.components:
+	        return None
+	    #Basic component occurence
+	    component = cls.new_component(component_type)
+	    component["name"] = component_type						### ! Define a real name when components will be defined with a JSON script
+	    component_model = HarfangUISkin.components[component_type]
+
+	    #Overwrites and create vars
+	    vec3_types = ["size_factor", "margins"] #fields that needs list_to_vec3 conversion
+	    ex_vars = ["primitives"]
+	    for key, value in component_model.items():
+	    	if key not in ex_vars:
+	    		if key in vec3_types:
+	    			component[key] = hg.Vec3(value[0], value[1], value[2])
+	    		else:
+	    			component[key] = value
+	    return component
 
 
 	@classmethod

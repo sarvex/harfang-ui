@@ -54,9 +54,7 @@ class VRControllersHandler:
     
     @classmethod
     def is_controller_connected(cls):
-        if len(cls.connected_controllers) > 0:
-            return True
-        return False
+        return len(cls.connected_controllers) > 0
 
     @classmethod
     def update_displays(cls, views_ids: list ):
