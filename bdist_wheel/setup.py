@@ -8,8 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 def package_files(directory):
     paths = []
     for (path, directories, filenames) in os.walk(directory):
-        for filename in filenames:
-            paths.append(os.path.join("..", path, filename))
+        paths.extend(os.path.join("..", path, filename) for filename in filenames)
     return paths
 
 extra_files = package_files("harfangui")
